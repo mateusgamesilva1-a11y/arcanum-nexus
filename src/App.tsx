@@ -107,7 +107,7 @@ function AppContent() {
       {/* 📜 CRÉDITOS ESPECIAIS NO RODAPÉ DA PÁGINA */}
       <footer className="w-full text-center py-3 bg-card border-t text-[10px] text-muted-foreground hidden md:block">
         <p>
-          Desenvolvido com por <span className="font-bold text-foreground">Mateus Henrique da Silva</span> (<span className="text-primary">@mhs.zoldyck</span>) 
+          Desenvolvido com por <span className="font-bold text-foreground">Mateus Henrique aura da Silva</span> (<span className="text-primary">@mhs.zoldyck</span>) 
           — Sistema criado por <span className="font-bold text-foreground">Heitor Tavares</span> (<span className="text-primary">@vecter01</span>)
         </p>
       </footer>
