@@ -38,7 +38,7 @@ function AppContent() {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView("list")}>
             <span className="font-black uppercase tracking-wider text-sm sm:text-base bg-linear-to-r from-violet-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Tavernas & Monstros
+              Arcanum Nexus
             </span>
           </div>
           
@@ -107,7 +107,7 @@ function AppContent() {
       {/* 📜 CRÉDITOS ESPECIAIS NO RODAPÉ DA PÁGINA */}
       <footer className="w-full text-center py-3 bg-card border-t text-[10px] text-muted-foreground hidden md:block">
         <p>
-          Desenvolvido com por <span className="font-bold text-foreground">Mateus Henrique aura da Silva</span> (<span className="text-primary">@mhs.zoldyck</span>) 
+          Desenvolvido com por <span className="font-bold text-foreground">Mateus Henrique da Silva</span> (<span className="text-primary">@mhs.zoldyck</span>) 
           — Sistema criado por <span className="font-bold text-foreground">Heitor Tavares</span> (<span className="text-primary">@vecter01</span>)
         </p>
       </footer>
