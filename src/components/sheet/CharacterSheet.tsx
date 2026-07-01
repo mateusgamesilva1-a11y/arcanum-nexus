@@ -92,7 +92,23 @@ export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
             size="sm" 
             onClick={() => {
               if (character.level > 1) {
-                updateCharacter(character.id, { level: character.level - 1 });
+                const prevLevel = character.level - 1;
+                const sub = character.classKey && character.subclassKey
+                  ? CLASSES[character.classKey]?.subclasses[character.subclassKey]
+                  : null;
+
+                // 1. Recalcula os status máximos base para o nível anterior
+                const updatedPV = calcMaxPV(prevLevel, character.attributes.constituicao, sub?.pvBonus ?? 0);
+                const updatedPE = calcMaxEnergia(prevLevel, character.attributes.intelecto, sub?.peBonus ?? 0);
+                const updatedSAN = calcMaxSanidade(prevLevel, character.attributes.presenca, sub?.sanBonus ?? 0);
+
+                // 2. Atualiza o personagem com o nível anterior e ajusta os status atuais para não exceder os novos máximos
+                update({ 
+                  level: prevLevel,
+                  currentPV: Math.min(character.currentPV, updatedPV),
+                  currentEnergia: Math.min(character.currentEnergia, updatedPE),
+                  currentSanidade: Math.min(character.currentSanidade, updatedSAN)
+                });
               }
             }}
             className="text-rose-500 border-rose-500/30 hover:bg-rose-500/10 h-8 px-2"

@@ -324,7 +324,7 @@ export const CLASSES: Record<string, ClassData> = {
       },
       pensador: {
         name: "Pensador",
-        description: "Exclusivo da época da magia. Sabedoria e improvisação.",
+        description: "Sabedoria e improvisação rápida para moldar e usar o ambiente ao seu favor.",
         icon: "🧠",
         skills: ["conhecimentos_gerais", "conhecimento_arcano"],
         attrBonus: { intelecto: 2 },
@@ -337,7 +337,7 @@ export const CLASSES: Record<string, ClassData> = {
   },
   arcanista: {
     name: "Arcanista",
-    description: "Mestre das artes mágicas e poderes arcanos.",
+    description: "Exclusivo da época da magia. Manipulador puro das forças arcanas originais.",
     icon: "🔮",
     subclasses: {
       elemental: {

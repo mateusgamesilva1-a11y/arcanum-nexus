@@ -116,7 +116,7 @@ export function CampaignDashboard({ onBack }: { onBack: () => void }) {
       if (data?.publicUrl) setCImageUrl(data.publicUrl);
     } catch (err) {
       console.error("Erro no upload da imagem:", err);
-      alert("Não foi possível subir a imagem da criatura.");
+      alert("Não foi possível subir a imagem da criatura. Verifique se o bucket 'avatars' é público.");
     } finally {
       setUploading(false);
     }
@@ -169,18 +169,18 @@ export function CampaignDashboard({ onBack }: { onBack: () => void }) {
     const payload = {
       name: cName,
       type: cType,
-      level: Number(cLevel),
-      pv_max: Number(cPvMax),
-      defesa: Number(cDefesa),
-      energia_max: Number(cEnergiaMax),
-      sanidade_max: Number(cSanidadeMax),
-      bp: Number(cBp),
-      image_url: cImageUrl,
-      forca: Number(cForca),
-      agilidade: Number(cAgilidade),
-      constituicao: Number(cConstituicao),
-      intelecto: Number(cIntelecto),
-      presenca: Number(cPresenca),
+      level: Number(cLevel) || 1,
+      pv_max: Number(cPvMax) || 10,
+      defesa: Number(cDefesa) || 10,
+      energia_max: Number(cEnergiaMax) || 0,
+      sanidade_max: Number(cSanidadeMax) || 0,
+      bp: Number(cBp) || 0,
+      image_url: cImageUrl || "",
+      forca: Number(cForca) || 0,
+      agilidade: Number(cAgilidade) || 0,
+      constituicao: Number(cConstituicao) || 0,
+      intelecto: Number(cIntelecto) || 0,
+      presenca: Number(cPresenca) || 0,
       skills_json: cAttacks,
       notes: cNotes,
       user_id: userId,
@@ -203,6 +203,7 @@ export function CampaignDashboard({ onBack }: { onBack: () => void }) {
       fetchCreatures(userId);
     } catch (err) {
       console.error("Erro ao salvar criatura:", err);
+      alert("Erro ao salvar dados no banco de dados.");
     }
   }
 
@@ -244,7 +245,7 @@ export function CampaignDashboard({ onBack }: { onBack: () => void }) {
               {editingCreatureId ? "📝 Editar Criatura" : "✨ Nova Criatura"}
             </h2>
             {editingCreatureId && (
-              <button onClick={clearForm} className="text-zinc-500 hover:text-zinc-300">
+              <button type="button" onClick={clearForm} className="text-zinc-500 hover:text-zinc-300">
                 <X className="size-4" />
               </button>
             )}
@@ -330,6 +331,7 @@ export function CampaignDashboard({ onBack }: { onBack: () => void }) {
             <div className="space-y-2">
               <div className="flex items-center justify-between border-t border-zinc-800 pt-2">
                 <label className="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-1"><Swords className="size-3 text-purple-400" /> Ataques Criados</label>
+                {/* CORREÇÃO CRÍTICA: Adicionado type="button" para não submeter o formulário inteiro antes do tempo */}
                 <button type="button" onClick={handleAddAttack} className="text-[10px] font-bold text-purple-400 hover:underline flex items-center gap-0.5">+ Criar</button>
               </div>
 
@@ -384,7 +386,7 @@ export function CampaignDashboard({ onBack }: { onBack: () => void }) {
                         {cr.image_url ? (
                           <>
                             <img src={cr.image_url} alt={cr.name} className="w-full h-full object-cover" />
-                            <button onClick={() => { setZoomTarget({ name: cr.name, url: cr.image_url! }); setZoomOpen(true); }} className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
+                            <button type="button" onClick={() => { setZoomTarget({ name: cr.name, url: cr.image_url! }); setZoomOpen(true); }} className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
                               <Maximize2 className="size-3 text-white" />
                             </button>
                           </>
@@ -449,20 +451,52 @@ export function CampaignDashboard({ onBack }: { onBack: () => void }) {
                     )}
                   </div>
 
-                  {/* Ações Inferiores (Deletar/Editar) */}
-                  <div className="mt-3 pt-2 border-t border-zinc-800/40 flex items-center justify-between shrink-0">
-                    <button onClick={() => startEdit(cr)} className="text-zinc-500 hover:text-purple-400 flex items-center gap-1 text-[10px] font-bold border border-zinc-800 px-2 py-0.5 rounded bg-zinc-950 transition-colors">
-                      <Edit className="size-3" /> Acessar & Editar
-                    </button>
+                  {/* Ações Inferiores (Deletar/Editar/Mudar Imagem) */}
+                  <div className="mt-3 pt-2 border-t border-zinc-800/40 flex items-center justify-between gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5">
+                      <button type="button" onClick={() => startEdit(cr)} className="text-zinc-500 hover:text-purple-400 flex items-center gap-1 text-[10px] font-bold border border-zinc-800 px-2 py-0.5 rounded bg-zinc-950 transition-colors">
+                        <Edit className="size-3" /> Acessar & Editar
+                      </button>
+                      
+                      {/* Upload de Imagem Rápido no próprio Card */}
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        id={`change-img-${cr.id}`}
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !userId) return;
+                          try {
+                            const fileExt = file.name.split('.').pop();
+                            const filePath = `creatures/${userId}/${crypto.randomUUID()}.${fileExt}`;
+                            const { error } = await supabase.storage.from("avatars").upload(filePath, file);
+                            if (error) throw error;
+                            const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+                            await supabase.from("creatures").update({ image_url: data.publicUrl }).eq("id", cr.id);
+                            fetchCreatures(userId);
+                          } catch (err) {
+                            alert("Erro ao mudar imagem.");
+                          }
+                        }}
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => document.getElementById(`change-img-${cr.id}`)?.click()}
+                        className="text-zinc-500 hover:text-zinc-300 text-[10px] font-bold border border-zinc-800 px-2 py-0.5 rounded bg-zinc-950"
+                      >
+                        📷 Foto
+                      </button>
+                    </div>
 
                     {deletingId === cr.id ? (
                       <div className="flex items-center gap-1.5 bg-rose-500/10 px-1.5 py-0.5 border border-rose-500/20 rounded">
                         <span className="text-[9px] font-bold text-rose-400">Apagar?</span>
-                        <button onClick={() => handleDeleteCreature(cr.id)} className="bg-rose-600 hover:bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded">Sim</button>
-                        <button onClick={() => setDeletingId(null)} className="bg-zinc-700 hover:bg-zinc-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded">Não</button>
+                        <button type="button" onClick={() => handleDeleteCreature(cr.id)} className="bg-rose-600 hover:bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded">Sim</button>
+                        <button type="button" onClick={() => setDeletingId(null)} className="bg-zinc-700 hover:bg-zinc-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded">Não</button>
                       </div>
                     ) : (
-                      <button onClick={() => setDeletingId(cr.id)} className="text-zinc-600 hover:text-rose-400 p-1 rounded transition-colors" title="Deletar Ameaça">
+                      <button type="button" onClick={() => setDeletingId(cr.id)} className="text-zinc-600 hover:text-rose-400 p-1 rounded transition-colors" title="Deletar Ameaça">
                         <Trash2 className="size-3.5" />
                       </button>
                     )}
