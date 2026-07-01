@@ -71,12 +71,6 @@ function CharacterCard({ character, onSelect, onDelete, onDuplicate }: {
     });
   };
 
-  const changeXP = (e: React.MouseEvent, amount: number) => {
-    e.stopPropagation();
-    const currentXP = character.xp ?? 0;
-    updateCharacter(character.id, { xp: Math.max(0, currentXP + amount) });
-  };
-
   // 🔗 CRIA LINK COMPARTILHÁVEL DA FICHA
   const copyShareLink = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -189,16 +183,8 @@ function CharacterCard({ character, onSelect, onDelete, onDuplicate }: {
 
       <CardFooter className="pt-0">
         <div className="flex items-center gap-2 w-full border-t border-dashed pt-2.5">
-          <div className="flex items-center bg-secondary rounded-lg px-1.5 py-0.5 border gap-0.5">
-            <button onClick={(e) => changeLevel(e, -1)} className="hover:bg-background rounded p-0.5 text-muted-foreground"><Minus className="size-3" /></button>
+          <div className="flex items-center bg-secondary rounded-lg px-2 py-0.5 border gap-0.5">
             <span className="text-[11px] font-black px-1">Nível {currentLevel}</span>
-            <button onClick={(e) => changeLevel(e, 1)} className="hover:bg-background rounded p-0.5 text-muted-foreground"><Plus className="size-3" /></button>
-          </div>
-
-          <div className="flex items-center bg-background rounded-lg px-1.5 py-0.5 border gap-0.5">
-            <button onClick={(e) => changeXP(e, -10)} className="hover:bg-muted rounded p-0.5 text-muted-foreground"><Minus className="size-3" /></button>
-            <span className="text-[11px] font-bold px-1">{character.xp} XP</span>
-            <button onClick={(e) => changeXP(e, 10)} className="hover:bg-muted rounded p-0.5 text-muted-foreground"><Plus className="size-3" /></button>
           </div>
 
           {character.race && (

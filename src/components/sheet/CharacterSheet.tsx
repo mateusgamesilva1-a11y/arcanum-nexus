@@ -87,6 +87,18 @@ export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
           <Button onClick={() => setLevelUpOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs gap-1.5 h-8 px-3 shrink-0">
             <ArrowUp className="size-3.5" /> Subir de Nível
           </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              if (character.level > 1) {
+                updateCharacter(character.id, { level: character.level - 1 });
+              }
+            }}
+            className="text-rose-500 border-rose-500/30 hover:bg-rose-500/10 h-8 px-2"
+          >
+            Abaixar Nível
+          </Button>
         </div>
       </div>
 

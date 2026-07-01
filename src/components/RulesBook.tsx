@@ -240,10 +240,9 @@ export function RulesBook({ onBack }: RulesBookProps) {
                   <p className="font-semibold text-sm mb-3">Tabela de Progressão</p>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
-                      <thead>
+                      <thead className="text-xs sm:text-sm">
                         <tr className="border-b">
                           <th className="text-left py-2 px-1">Nível</th>
-                          <th className="text-right py-2 px-1">XP Req.</th>
                           <th className="text-center py-2 px-1">+PV</th>
                           <th className="text-center py-2 px-1">+PE</th>
                           <th className="text-center py-2 px-1">+SAN</th>
@@ -253,18 +252,17 @@ export function RulesBook({ onBack }: RulesBookProps) {
                           <th className="text-center py-2 px-1">Perícia</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="text-xs sm:text-sm">
                         {LEVEL_TABLE.map((row) => (
                           <tr key={row.level} className="border-b border-border/50">
-                            <td className="py-1.5 px-1 font-bold">{row.level}</td>
-                            <td className="py-1.5 px-1 text-right font-mono">{row.xpRequired}</td>
-                            <td className="py-1.5 px-1 text-center text-rose-500">+{row.pvGain}</td>
-                            <td className="py-1.5 px-1 text-center text-blue-500">{row.peGain > 0 ? `+${row.peGain}` : "—"}</td>
-                            <td className="py-1.5 px-1 text-center text-amber-500">+{row.sanGain}</td>
-                            <td className="py-1.5 px-1 text-center text-violet-500">{row.bpGain > 0 ? `+${row.bpGain}` : "—"}</td>
-                            <td className="py-1.5 px-1 text-center">{row.attrPoint ? "✓" : "—"}</td>
-                            <td className="py-1.5 px-1 text-center">{row.newHabilidade ? "✓" : "—"}</td>
-                            <td className="py-1.5 px-1 text-center">{row.newPericia ? "✓" : "—"}</td>
+                            <td className="py-2 px-1 font-bold">{row.level}</td>
+                            <td className="py-2 px-1 text-center text-rose-500">+{row.pvGain}</td>
+                            <td className="py-2 px-1 text-center text-blue-500">{row.peGain > 0 ? `+${row.peGain}` : "—"}</td>
+                            <td className="py-2 px-1 text-center text-amber-500">+{row.sanGain}</td>
+                            <td className="py-2 px-1 text-center text-violet-500">{row.bpGain > 0 ? `+${row.bpGain}` : "—"}</td>
+                            <td className="py-2 px-1 text-center">{row.attrPoint ? "✓" : "—"}</td>
+                            <td className="py-2 px-1 text-center">{row.newHabilidade ? "✓" : "—"}</td>
+                            <td className="py-2 px-1 text-center">{row.newPericia ? "✓" : "—"}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -273,12 +271,12 @@ export function RulesBook({ onBack }: RulesBookProps) {
                 </div>
                 <div className="rounded-lg border bg-card p-4 space-y-2 text-xs text-muted-foreground">
                   <p><strong className="text-foreground">+PV:</strong> +2 PV máximo por nível</p>
-                  <p><strong className="text-foreground">+PE:</strong> +1 Energia máxima em níveis pares</p>
-                  <p><strong className="text-foreground">+SAN:</strong> +1 Sanidade máxima por nível</p>
-                  <p><strong className="text-foreground">+BP:</strong> +1 Bônus de Proficiência a cada 3 níveis</p>
+                  <p><strong className="text-foreground">+PE:</strong> +1 energia máxima em níveis pares</p>
+                  <p><strong className="text-foreground">+SAN:</strong> +1 sanidade máxima por nível</p>
+                  <p><strong className="text-foreground">+BP:</strong> +1 bônus de proficiência a cada 3 níveis</p>
                   <p><strong className="text-foreground">Atrib.:</strong> +1 ponto de atributo em níveis pares</p>
-                  <p><strong className="text-foreground">Hab.:</strong> Nova habilidade em níveis ímpares</p>
-                  <p><strong className="text-foreground">Perícia:</strong> Nova perícia treinada a cada 5 níveis</p>
+                  <p><strong className="text-foreground">Hab.:</strong> nova habilidade em níveis ímpares</p>
+                  <p><strong className="text-foreground">Perícia:</strong> nova perícia treinada a cada 5 níveis</p>
                 </div>
               </div>
             </TabsContent>
@@ -295,7 +293,7 @@ export function RulesBook({ onBack }: RulesBookProps) {
                     { title: "Sanidade", content: "Representa equilíbrio mental. Eventos traumáticos podem reduzir Sanidade. A 0, o personagem pode ter colapso ou agir fora de controle (decisão do Mestre)." },
                     { title: "Descanso", content: "Descanso Curto (1h): Recupera metade dos PV. Descanso Longo (8h): Recupera todos os PV, PE, e BP." },
                     { title: "Inventário e Carga", content: "Carga máxima: 5 + mod FOR. Exceder a carga impõe desvantagem em movimentação. Armas de duas mãos contam como 2 espaços." },
-                    { title: "Progressão de Nível", content: "1000 XP por nível. A cada nível: +2 PV max, +1 SAN max. Níveis pares: +1 PE max e +1 atributo. A cada 3 níveis: +1 BP max. Níveis ímpares: nova habilidade. A cada 5 níveis: nova perícia." },
+                    { title: "Progressão de Nível", content: "O avanço de nível é controlado diretamente pelo Mestre. A cada nível: +2 PV max, +1 SAN max. Níveis pares: +1 PE max. Níveis ímpares: +1 atributo livre. A cada 3 níveis: +1 BP max. Níveis ímpares alternados concedem novas habilidades e perícias conforme a tabela." }
                   ].map((item) => (
                     <AccordionItem key={item.title} value={item.title} className="border rounded-xl overflow-hidden">
                       <AccordionTrigger className="px-4 py-3 text-sm font-semibold hover:bg-accent hover:no-underline">{item.title}</AccordionTrigger>
