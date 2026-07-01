@@ -8,7 +8,7 @@ import { CampaignDashboard } from "@/components/CampaignDashboard";
 import { ModeToggle } from "@/components/mode-toggle";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
-import { LogIn, UserPlus, LogOut, ShieldAlert } from "lucide-react";
+import { LogIn, UserPlus, LogOut, ShieldAlert, KeyRound, Mail } from "lucide-react";
 
 type View = "list" | "sheet" | "wizard" | "rules" | "campaigns";
 
@@ -19,25 +19,24 @@ function AppContent() {
   const [authLoading, setAuthLoading] = React.useState(true);
   const [authMode, setAuthMode] = React.useState<"login" | "register">("login");
   
-  // Estados dos inputs de autenticação
+  // Estados de autenticação
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [authError, setAuthError] = React.useState<string | null>(null);
   const [authSuccess, setAuthSuccess] = React.useState(false);
 
   React.useEffect(() => {
-    // Checa sessão atual
+    // Checa sessão inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setAuthLoading(false);
     });
 
-    // Escuta mudanças na autenticação (login/logout)
+    // Escuta mudanças de login/logout
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
-    // Detecta parâmetro de compartilhamento na URL
     const params = new URLSearchParams(window.location.search);
     const sharedId = params.get("char");
     if (sharedId) {
@@ -48,7 +47,6 @@ function AppContent() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Sincroniza vínculos ao detectar usuário logado
   React.useEffect(() => {
     if (user) {
       supabase.from("campaign_players").update({ user_id: user.id }).eq("player_email", user.email);
@@ -81,77 +79,85 @@ function AppContent() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center font-mono text-xs text-muted-foreground">
+      <div className="flex min-h-svh items-center justify-center bg-background font-mono text-xs text-muted-foreground animate-pulse">
         Carregando Conexão Mística...
       </div>
     );
   }
 
-  // Se NÃO houver usuário logado, renderiza a tela de Login/Cadastro
+  // Se NÃO estiver logado, exibe uma tela de autenticação condizente e bonita
   if (!user) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-indigo-600" />
+      <div className="flex min-h-svh bg-background text-foreground items-center justify-center p-4 transition-colors">
+        <div className="w-full max-w-sm bg-card border rounded-xl p-6 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500" />
           
           <div className="text-center mb-6">
-            <h1 className="text-xl font-black tracking-wider uppercase text-purple-400">Arcanum Nexus</h1>
-            <p className="text-[10px] text-zinc-400 font-mono mt-1">Acesse sua Ficha de Herói</p>
+            <h1 className="text-xl font-black tracking-wider uppercase bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              Arcanum Nexus
+            </h1>
+            <p className="text-[10px] text-muted-foreground font-mono mt-1">Acesse o seu painel de herói</p>
           </div>
 
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-mono text-zinc-400 block mb-1">E-mail</label>
-              <input 
-                type="email" 
-                required 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-xs focus:outline-none focus:border-purple-500 font-mono transition-colors"
-                placeholder="seuemail@exemplo.com"
-              />
+              <label className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground block mb-1">E-mail</label>
+              <div className="relative">
+                <Mail className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                <input 
+                  type="email" 
+                  required 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-background border rounded pl-8 pr-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 font-mono transition-colors"
+                  placeholder="seuemail@exemplo.com"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-mono text-zinc-400 block mb-1">Senha</label>
-              <input 
-                type="password" 
-                required 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-xs focus:outline-none focus:border-purple-500 font-mono transition-colors"
-                placeholder="••••••••"
-              />
+              <label className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground block mb-1">Senha</label>
+              <div className="relative">
+                <KeyRound className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                <input 
+                  type="password" 
+                  required 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-background border rounded pl-8 pr-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 font-mono transition-colors"
+                  placeholder="••••••••"
+                />
+              </div>
             </div>
 
             {authError && (
-              <div className="p-2 bg-rose-950/30 border border-rose-900 text-rose-400 text-[10px] font-mono rounded flex items-center gap-2">
-                <ShieldAlert className="size-3 shrink-0" />
+              <div className="p-2.5 bg-destructive/10 border border-destructive/20 text-destructive text-[10px] font-mono rounded flex items-center gap-2">
+                <ShieldAlert className="size-3.5 shrink-0" />
                 <span>{authError}</span>
               </div>
             )}
 
             {authSuccess && (
-              <div className="p-2 bg-emerald-950/30 border border-emerald-900 text-emerald-400 text-[10px] font-mono rounded">
-                Cadastro feito! Verifique seu e-mail se necessário.
+              <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-mono rounded">
+                Cadastro concluído! Acesse agora utilizando suas credenciais.
               </div>
             )}
 
             <button 
               type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-700 font-bold uppercase tracking-wider text-[11px] text-white py-2.5 rounded transition-colors flex items-center justify-center gap-2 shadow-lg shadow-purple-900/20"
+              className="w-full bg-primary hover:bg-primary/90 font-bold uppercase tracking-wider text-[11px] text-primary-foreground py-2.5 rounded transition-colors flex items-center justify-center gap-2 shadow-md shadow-primary/10"
             >
               {authMode === "login" ? <LogIn className="size-3.5" /> : <UserPlus className="size-3.5" />}
               {authMode === "login" ? "Entrar no Nexus" : "Criar Nova Conta"}
             </button>
           </form>
 
-          <div className="text-center mt-6 pt-4 border-t border-zinc-800">
+          <div className="text-center mt-6 pt-4 border-t">
             <button 
               onClick={() => { setAuthMode(authMode === "login" ? "register" : "login"); setAuthError(null); }}
-              className="text-[10px] text-purple-400 hover:underline font-mono"
+              className="text-[10px] text-primary hover:underline font-mono"
             >
-              {authMode === "login" ? "Não tem uma conta? Cadastre-se" : "Já tem conta? Faça o Login"}
+              {authMode === "login" ? "Não tem uma conta? Cadastre-se" : "Já possui conta? Faça o Login"}
             </button>
           </div>
         </div>
@@ -159,36 +165,65 @@ function AppContent() {
     );
   }
 
-  // Se o usuário estiver logado, exibe o app normal com o botão "Sair" adicionado no topo
+  // Se estiver logado, exibe o aplicativo original idêntico ao seu layout anterior
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <header className="w-full bg-card border-b px-4 py-2.5 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xs font-black tracking-wider uppercase text-primary">Arcanum Nexus</h1>
-          <nav className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground ml-4">
-            <button onClick={() => setView("list")} className={cn("hover:text-foreground px-2 py-1 rounded", view === "list" && "text-foreground bg-muted font-bold")}>Fichas</button>
-            <button onClick={() => setView("campaigns")} className={cn("hover:text-foreground px-2 py-1 rounded", view === "campaigns" && "text-foreground bg-muted font-bold")}>Mestre/Bestiário</button>
-            <button onClick={() => setView("rules")} className={cn("hover:text-foreground px-2 py-1 rounded", view === "rules" && "text-foreground bg-muted font-bold")}>Regras</button>
+    <div className="flex flex-col min-h-svh bg-background text-foreground transition-colors">
+      {/* CABEÇALHO GLOBAL */}
+      <header className="fixed top-0 left-0 right-0 h-14 border-b bg-card px-4 flex items-center justify-between z-50 shadow-sm">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView("list")}>
+            <span className="font-black uppercase tracking-wider text-sm sm:text-base bg-linear-to-r from-violet-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              Arcanum Nexus
+            </span>
+          </div>
+          
+          <nav className="hidden md:flex items-center gap-1 text-xs font-bold uppercase tracking-wider">
+            <button 
+              onClick={() => setView("list")} 
+              className={cn("px-3 py-1.5 rounded-md transition-colors", view === "list" || view === "sheet" || view === "wizard" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
+            >
+              Personagens
+            </button>
+            <button 
+              onClick={() => setView("campaigns")} 
+              className={cn("px-3 py-1.5 rounded-md transition-colors", view === "campaigns" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
+            >
+              Bestiário de Ameaças
+            </button>
+            <button 
+              onClick={() => setView("rules")} 
+              className={cn("px-3 py-1.5 rounded-md transition-colors", view === "rules" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
+            >
+              Livro de Regras
+            </button>
           </nav>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-mono text-muted-foreground max-w-[120px] truncate hidden sm:inline" title={user.email}>
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] font-mono text-muted-foreground hidden lg:inline max-w-[150px] truncate" title={user.email}>
             {user.email}
           </span>
           <button 
             onClick={handleLogout}
-            className="text-muted-foreground hover:text-rose-400 p-1.5 rounded border border-transparent hover:border-border transition-all flex items-center gap-1 text-[10px] font-mono"
+            className="text-muted-foreground hover:text-destructive p-2 rounded-md border border-transparent hover:bg-muted transition-all flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
             title="Sair do Sistema"
           >
             <LogOut className="size-3.5" />
-            <span className="hidden sm:inline">Sair</span>
+            <span className="hidden sm:inline text-[11px]">Sair</span>
           </button>
           <ModeToggle />
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-zinc-50/40 dark:bg-zinc-950/20">
+      {/* Navegação Mobile Inferior */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-12 bg-card border-t flex items-center justify-around z-50 text-[10px] font-black uppercase tracking-wider">
+        <button onClick={() => setView("list")} className={cn("flex-1 py-3 text-center", view === "list" || view === "sheet" ? "text-primary border-t-2 border-primary" : "text-muted-foreground")}>Fichas</button>
+        <button onClick={() => setView("campaigns")} className={cn("flex-1 py-3 text-center", view === "campaigns" ? "text-primary border-t-2 border-primary" : "text-muted-foreground")}>Bestiário</button>
+        <button onClick={() => setView("rules")} className={cn("flex-1 py-3 text-center", view === "rules" ? "text-primary border-t-2 border-primary" : "text-muted-foreground")}>Regras</button>
+      </div>
+
+      {/* CONTEÚDO PRINCIPAL */}
+      <main className="flex-1 flex flex-col pt-14 pb-16 md:pb-6 w-full mx-auto max-w-7xl">
         {view === "list" && (
           <CharacterList
             onSelect={(id) => { setActiveId(id); setView("sheet"); }}
@@ -215,17 +250,18 @@ function AppContent() {
         )}
       </main>
 
+      {/* 📜 CRÉDITOS ESPECIAIS NO RODAPÉ DA PÁGINA */}
       <footer className="w-full text-center py-3 bg-card border-t text-[10px] text-muted-foreground hidden md:block">
         <p>
-          Desenvolvido com ♥ por <span className="font-bold text-foreground">Mateus Henrique da Silva</span> (<span className="text-primary">@mhs.zoldyck</span>) 
-          — Sistema criado por <span className="font-bold text-foreground">Heitor Tavares</span>
+          Desenvolvido com por <span className="font-bold text-foreground">Mateus Henrique da Silva</span> (<span className="text-primary">@mhs.zoldyck</span>) 
+          — Sistema criado por <span className="font-bold text-foreground">Heitor Tavares</span> (<span className="text-primary">@vecter01</span>)
         </p>
       </footer>
     </div>
   );
 }
 
-export function App() {
+export default function App() {
   return (
     <CharacterStoreProvider>
       <AppContent />
