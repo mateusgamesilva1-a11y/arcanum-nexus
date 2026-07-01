@@ -478,7 +478,8 @@ export function calcMaxPV(level: number, constitMod: number, pvBonus = 0): numbe
 }
 
 export function calcMaxEnergia(level: number, intMod: number, peBonus = 0): number {
-  return 1 + Math.ceil(intMod / 2) + peBonus + Math.floor((level - 1) / 2);
+  // REGRA DO MESTRE: Garante que a Energia Máxima nunca seja menor que 1
+  return Math.max(1, 1 + Math.ceil(intMod / 2) + peBonus + Math.floor((level - 1) / 2));
 }
 
 export function calcMaxSanidade(level: number, presMod: number, sanBonus = 0): number {
@@ -509,16 +510,19 @@ export interface LevelProgression {
 }
 
 export function getLevelProgression(level: number): LevelProgression {
+  // REGRA DO MESTRE: Níveis ímpares maiores que 1 ganham bônus de atributo (+1 ponto livre)
+  const isOddLevel = level > 1 && level % 2 !== 0;
+
   return {
     level,
     xpRequired: level * 1000,
     pvGain: 2,
     peGain: level % 2 === 0 ? 1 : 0,
     sanGain: 1,
-    bpGain: level % 3 === 0 ? 1 : 0,
-    attrPoint: level % 2 === 0,
-    newHabilidade: level % 2 === 1,
-    newPericia: level % 5 === 0,
+    bpGain: level === 4 || level === 7 || level === 10 || level === 13 || level === 16 || level === 19 ? 1 : 0,
+    attrPoint: isOddLevel,
+    newHabilidade: level % 3 === 0,
+    newPericia: level === 5 || level === 11 || level === 17,
   };
 }
 

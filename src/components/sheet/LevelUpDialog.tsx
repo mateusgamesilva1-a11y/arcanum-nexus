@@ -1,6 +1,3 @@
-// ============================================================
-// LEVEL UP DIALOG
-// ============================================================
 import * as React from "react";
 import type { Character } from "@/lib/character-types";
 import type { AttributeKey } from "@/lib/rpg-data";
@@ -9,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { ArrowUp, Star } from "lucide-react";
+import { ArrowUp, Star, AlertTriangle } from "lucide-react";
 
 interface LevelUpDialogProps {
   open: boolean;
@@ -20,19 +17,21 @@ interface LevelUpDialogProps {
 
 export function LevelUpDialog({ open, onOpenChange, character, onLevelUp }: LevelUpDialogProps) {
   const newLevel = character.level + 1;
-  const prog = LEVEL_TABLE[newLevel - 1];
+  const prog = LEVEL_TABLE[newLevel - 1] || { pvGain: 0, sanGain: 0, peGain: 0, bpGain: 0, newHabilidade: false, newPericia: false };
   const sub = character.classKey && character.subclassKey
     ? CLASSES[character.classKey]?.subclasses[character.subclassKey]
     : null;
 
   const [attrChoice, setAttrChoice] = React.useState<AttributeKey | null>(null);
 
-  const newMaxPV = calcMaxPV(newLevel, character.attributes.constituicao, sub?.pvBonus ?? 0);
-  // ⚡ Regra do Mestre: Garante que a energia máxima calculada nunca seja menor que 1
-  const newMaxEnergia = Math.max(1, calcMaxEnergia(newLevel, character.attributes.intelecto, sub?.peBonus ?? 0));
-  const newMaxSanidade = calcMaxSanidade(newLevel, character.attributes.presenca, sub?.sanBonus ?? 0);
+  // REGRA DO MESTRE: A cada nível ímpar, você ganha 1 atributo livre!
+  const isOddLevel = newLevel % 2 !== 0;
+
+  const newMaxPV = calcMaxPV(newLevel, character.attributes.constituicao + (isOddLevel && attrChoice === "constituicao" ? 1 : 0), sub?.pvBonus ?? 0);
+  const newMaxEnergia = Math.max(1, calcMaxEnergia(newLevel, character.attributes.intelecto + (isOddLevel && attrChoice === "intelecto" ? 1 : 0), sub?.peBonus ?? 0));
+  const newMaxSanidade = calcMaxSanidade(newLevel, character.attributes.presenca + (isOddLevel && attrChoice === "presenca" ? 1 : 0), sub?.sanBonus ?? 0);
   const newMaxBP = calcBP(newLevel, sub?.bpBonus ?? 0);
-  const newDefesa = calcDefesa(character.attributes.agilidade);
+  const newDefesa = calcDefesa(character.attributes.agilidade + (isOddLevel && attrChoice === "agilidade" ? 1 : 0));
 
   function handleConfirm() {
     const updates: Partial<Character> = {
@@ -42,23 +41,21 @@ export function LevelUpDialog({ open, onOpenChange, character, onLevelUp }: Leve
       maxSanidade: newMaxSanidade,
       maxBP: newMaxBP,
       defesa: newDefesa,
-      currentPV: character.currentPV + prog.pvGain,
-      currentSanidade: character.currentSanidade + prog.sanGain,
+      currentPV: character.currentPV + (prog.pvGain || 0),
+      currentSanidade: character.currentSanidade + (prog.sanGain || 0),
     };
 
     if (prog.peGain > 0) {
-      // ⚡ Garante que a energia atual ganha nunca fique abaixo de 1
       updates.currentEnergia = Math.max(1, character.currentEnergia + prog.peGain);
+    } else {
+      updates.currentEnergia = Math.max(1, character.currentEnergia);
     }
 
-    if (prog.attrPoint && attrChoice) {
-      const newAttrs = { ...character.attributes };
-      (newAttrs as Record<string, number>)[attrChoice] = ((newAttrs as Record<string, number>)[attrChoice] || 0) + 1;
+    const newAttrs = { ...character.attributes };
+    if (isOddLevel && attrChoice) {
+      newAttrs[attrChoice] = (newAttrs[attrChoice] || 0) + 1;
       updates.attributes = newAttrs;
-      
-      // Recalcula os atributos derivados baseados no novo ponto distribuído
       updates.maxPV = calcMaxPV(newLevel, newAttrs.constituicao, sub?.pvBonus ?? 0);
-      // ⚡ Mantém a trava de energia mínima em 1 aqui também após a alteração do atributo
       updates.maxEnergia = Math.max(1, calcMaxEnergia(newLevel, newAttrs.intelecto, sub?.peBonus ?? 0));
       updates.maxSanidade = calcMaxSanidade(newLevel, newAttrs.presenca, sub?.sanBonus ?? 0);
       updates.defesa = calcDefesa(newAttrs.agilidade);
@@ -78,12 +75,12 @@ export function LevelUpDialog({ open, onOpenChange, character, onLevelUp }: Leve
             Subir para Nível {newLevel}
           </DialogTitle>
           <DialogDescription>
-            Revise os ganhos do novo nível e confirme.
+            Revise os ganhos do novo nível e confirme a ascensão determinada pelo mestre.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Resumo de Ganhos */}
+          {/* Resumo de Ganhos Mecânicos */}
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-lg border bg-card p-3">
               <p className="text-xs text-muted-foreground">PV Máx.</p>
@@ -97,39 +94,30 @@ export function LevelUpDialog({ open, onOpenChange, character, onLevelUp }: Leve
                 {character.maxSanidade} → {newMaxSanidade} <span className="text-xs text-emerald-500">(+{prog.sanGain})</span>
               </p>
             </div>
-            {prog.peGain > 0 && (
-              <div className="rounded-lg border bg-card p-3">
-                <p className="text-xs text-muted-foreground">Energia Máx.</p>
-                <p className="text-lg font-bold text-blue-500">
-                  {character.maxEnergia} → {newMaxEnergia} <span className="text-xs text-emerald-500">(+{prog.peGain})</span>
-                </p>
-              </div>
-            )}
-            {prog.bpGain > 0 && (
-              <div className="rounded-lg border bg-card p-3">
-                <p className="text-xs text-muted-foreground">BP Máx.</p>
-                <p className="text-lg font-bold text-violet-500">
-                  {character.maxBP} → {newMaxBP} <span className="text-xs text-emerald-500">(+{prog.bpGain})</span>
-                </p>
-              </div>
-            )}
+            <div className="rounded-lg border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Energia Máx.</p>
+              <p className="text-lg font-bold text-blue-500">
+                {character.maxEnergia} → {newMaxEnergia} <span className="text-xs text-emerald-500">(+{prog.peGain || 0})</span>
+              </p>
+            </div>
+            <div className="rounded-lg border bg-card p-3">
+              <p className="text-xs text-muted-foreground">BP Máx.</p>
+              <p className="text-lg font-bold text-violet-500">
+                {character.maxBP} → {newMaxBP} <span className="text-xs text-emerald-500">(+{prog.bpGain || 0})</span>
+              </p>
+            </div>
           </div>
 
-          {/* Ganhos Especiais */}
           <div className="flex flex-wrap gap-2">
-            {prog.newHabilidade && (
-              <Badge className="gap-1"><Star className="size-3" /> Nova Habilidade</Badge>
-            )}
-            {prog.newPericia && (
-              <Badge className="gap-1"><Star className="size-3" /> Nova Perícia</Badge>
-            )}
+            {prog.newHabilidade && <Badge className="gap-1"><Star className="size-3" /> Nova Habilidade</Badge>}
+            {prog.newPericia && <Badge className="gap-1"><Star className="size-3" /> Nova Perícia</Badge>}
           </div>
 
-          {/* Escolha de Atributo (Se o nível permitir) */}
-          {prog.attrPoint && (
-            <div>
-              <p className="text-sm font-medium mb-2 text-purple-400 font-bold uppercase tracking-wide text-xs">
-                ✨ Distribuição de Atributo Livre:
+          {/* ALERTA E SELEÇÃO DE ATRIBUTO LIVRE EM NÍVEL ÍMPAR */}
+          {isOddLevel ? (
+            <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg space-y-2">
+              <p className="text-sm font-medium text-purple-400 font-bold uppercase tracking-wide text-xs flex items-center gap-1.5">
+                <Star className="size-3.5 fill-purple-400" /> ✨ Nível Ímpar: Distribua +1 Atributo!
               </p>
               <div className="grid grid-cols-5 gap-2">
                 {(Object.keys(ATTRIBUTE_NAMES) as AttributeKey[]).map((key) => (
@@ -139,7 +127,7 @@ export function LevelUpDialog({ open, onOpenChange, character, onLevelUp }: Leve
                     onClick={() => setAttrChoice(key)}
                     className={cn(
                       "rounded-lg border-2 p-2 text-center transition-all flex flex-col justify-between min-h-[68px]",
-                      attrChoice === key ? "border-purple-500 bg-purple-500/10" : "border-border bg-card hover:border-purple-500/50"
+                      attrChoice === key ? "border-purple-500 bg-purple-500/20" : "border-border bg-card hover:border-purple-500/50"
                     )}
                   >
                     <p className="text-xs font-black uppercase text-foreground">{ATTRIBUTE_SHORT[key]}</p>
@@ -147,12 +135,19 @@ export function LevelUpDialog({ open, onOpenChange, character, onLevelUp }: Leve
                     <p className="text-[11px] font-mono mt-1">
                       {character.attributes[key] >= 0 ? `+${character.attributes[key]}` : character.attributes[key]}
                       → <span className="text-emerald-500 font-bold">
-                        {(character.attributes[key] + 1) >= 0 ? `+${character.attributes[key] + 1}` : character.attributes[key] + 1}
+                        {character.attributes[key] + 1 >= 0 ? `+${character.attributes[key] + 1}` : character.attributes[key] + 1}
                       </span>
                     </p>
                   </button>
                 ))}
               </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-muted/40 border rounded-lg flex items-start gap-2">
+              <AlertTriangle className="size-4 text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-muted-foreground leading-tight">
+                Nível par alcançado. Pontos de atributos livres não são concedidos neste nível.
+              </p>
             </div>
           )}
         </div>
@@ -161,7 +156,7 @@ export function LevelUpDialog({ open, onOpenChange, character, onLevelUp }: Leve
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button 
             onClick={handleConfirm} 
-            disabled={prog.attrPoint && !attrChoice}
+            disabled={isOddLevel && !attrChoice}
             className="bg-purple-600 hover:bg-purple-700 text-white font-bold"
           >
             Confirmar Nível {newLevel}

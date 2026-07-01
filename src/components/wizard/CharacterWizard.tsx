@@ -1,6 +1,3 @@
-// ============================================================
-// WIZARD CONTAINER
-// ============================================================
 import * as React from "react";
 import { CLASSES, calcMaxPV, calcMaxEnergia, calcMaxSanidade, calcDefesa, calcBP, ATTR_BASE } from "@/lib/rpg-data";
 import type { AttributeKey, ProficiencyKey } from "@/lib/rpg-data";
@@ -28,7 +25,6 @@ interface WizardProps {
 export function CharacterWizard({ onComplete, onCancel }: WizardProps) {
   const { addCharacter } = useCharacterStore();
   const [step, setStep] = React.useState(0);
-
   const [identity, setIdentity] = React.useState({
     name: "",
     player: "",
@@ -69,10 +65,8 @@ export function CharacterWizard({ onComplete, onCancel }: WizardProps) {
     return true;
   }
 
-  function buildCharacter(): Character {
+  function buildCharacter(): Omit<Character, 'xp'> & { xp?: number } {
     const sub = CLASSES[classKey]?.subclasses[subclassKey];
-
-    // Apply subclass attr bonus ON TOP of distributed attributes
     const finalAttrs = { ...attributes };
     if (sub) {
       for (const [k, v] of Object.entries(sub.attrBonus)) {
@@ -81,12 +75,12 @@ export function CharacterWizard({ onComplete, onCancel }: WizardProps) {
     }
 
     const maxPV = calcMaxPV(1, finalAttrs.constituicao, sub?.pvBonus ?? 0);
+    // REGRA DO MESTRE: Energia inicial fixada com mínimo em 1
     const maxEnergia = Math.max(1, calcMaxEnergia(1, finalAttrs.intelecto, sub?.peBonus ?? 0));
     const maxSanidade = calcMaxSanidade(1, finalAttrs.presenca, sub?.sanBonus ?? 0);
     const maxBP = calcBP(1, sub?.bpBonus ?? 0);
     const defesa = calcDefesa(finalAttrs.agilidade);
 
-    // Skill merging: wizard selection + subclass skills
     const mergedSkills: Record<string, boolean> = { ...skills };
     if (sub) {
       for (const sk of sub.skills) {
@@ -94,7 +88,6 @@ export function CharacterWizard({ onComplete, onCancel }: WizardProps) {
       }
     }
 
-    // Proficiency from subclass
     const profs: Record<ProficiencyKey, boolean> = {} as Record<ProficiencyKey, boolean>;
     if (sub) {
       for (const pk of sub.proficiencies) {
@@ -110,7 +103,6 @@ export function CharacterWizard({ onComplete, onCancel }: WizardProps) {
       classKey,
       subclassKey,
       level: 1,
-      xp: 0,
       description: "",
       attributes: finalAttrs,
       currentPV: maxPV,
@@ -147,7 +139,7 @@ export function CharacterWizard({ onComplete, onCancel }: WizardProps) {
 
   function handleFinish() {
     const char = buildCharacter();
-    addCharacter(char);
+    addCharacter(char as Character);
     onComplete(char.id);
   }
 
@@ -175,8 +167,7 @@ export function CharacterWizard({ onComplete, onCancel }: WizardProps) {
                 <div className={cn(
                   "size-7 rounded-full border-2 flex items-center justify-center text-xs font-bold shrink-0",
                   i < step ? "border-primary bg-primary text-primary-foreground" :
-                  i === step ? "border-primary text-primary" :
-                  "border-border text-muted-foreground"
+                  i === step ? "border-primary text-primary" : "border-border text-muted-foreground"
                 )}>
                   {i < step ? <Check className="size-3" /> : i + 1}
                 </div>
@@ -215,29 +206,18 @@ export function CharacterWizard({ onComplete, onCancel }: WizardProps) {
       </div>
 
       <div className="border-t bg-card px-6 py-4 flex items-center justify-between shrink-0">
-        <Button
-          variant="outline"
-          onClick={() => setStep((s) => Math.max(0, s - 1))}
-          disabled={step === 0}
-        >
+        <Button variant="outline" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>
           <ChevronLeft className="size-4" />
           Anterior
         </Button>
 
         {step < STEPS.length - 1 ? (
-          <Button
-            onClick={() => setStep((s) => s + 1)}
-            disabled={!canProceed()}
-          >
+          <Button onClick={() => setStep((s) => s + 1)} disabled={!canProceed()}>
             Próximo
             <ChevronRight className="size-4" />
           </Button>
         ) : (
-          <Button
-            onClick={handleFinish}
-            disabled={!canProceed()}
-            className="gap-2"
-          >
+          <Button onClick={handleFinish} disabled={!canProceed()} className="gap-2">
             <Check className="size-4" />
             Criar Personagem
           </Button>

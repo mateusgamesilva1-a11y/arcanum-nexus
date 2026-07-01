@@ -39,6 +39,7 @@ export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
 
   function recalcDerived() {
     const maxPV = calcMaxPV(character.level, character.attributes.constituicao, sub?.pvBonus ?? 0);
+    // REGRA DO MESTRE: Energia mínima travada em 1
     const maxEnergia = Math.max(1, calcMaxEnergia(character.level, character.attributes.intelecto, sub?.peBonus ?? 0));
     const maxSanidade = calcMaxSanidade(character.level, character.attributes.presenca, sub?.sanBonus ?? 0);
     const maxBP = calcBP(character.level, sub?.bpBonus ?? 0);
@@ -50,11 +51,6 @@ export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
     if (nameInput.trim()) update({ name: nameInput.trim() });
     setEditingName(false);
   }
-
-  const XP_PER_LEVEL = 1000;
-  const xpInLevel = character.xp % XP_PER_LEVEL;
-  const xpPct = (xpInLevel / XP_PER_LEVEL) * 100;
-  const canLevelUp = character.xp >= character.level * XP_PER_LEVEL;
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -86,6 +82,11 @@ export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
               {character.race && <span className="text-xs text-muted-foreground">{character.race}</span>}
             </div>
           </div>
+
+          {/* Botão de nível controlado pelo Mestre */}
+          <Button onClick={() => setLevelUpOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs gap-1.5 h-8 px-3 shrink-0">
+            <ArrowUp className="size-3.5" /> Subir de Nível
+          </Button>
         </div>
       </div>
 
@@ -104,6 +105,7 @@ export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
             <span className="font-bold text-blue-500">{character.defesa}</span>
             <span className="text-xs text-muted-foreground">(10 + AGL)</span>
           </div>
+          
           <Button variant="ghost" size="sm" onClick={recalcDerived} className="text-xs gap-1">
             <RefreshCw className="size-3" />
             Recalcular
